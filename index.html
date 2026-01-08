@@ -24,10 +24,7 @@ body { margin:0; font-family:Arial,sans-serif; }
   font-size:16px;
   animation: fade 2s infinite alternate;
 }
-@keyframes fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes fade { from { opacity:0; } to { opacity:1; } }
 
 /* Fazla stok detay kutusu */
 .high-stock-box {
@@ -65,16 +62,22 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 
 <!-- ==== PIN KORUMASI ==== -->
 <script>
-const PIN = "9553"; // → burayı değiştir
-if (!localStorage.getItem("pin_ok")) {
-  const p = prompt("Yetkili PIN giriniz:");
-  if (p === PIN) {
-    localStorage.setItem("pin_ok","1");
+const adminPIN = "2407"; // Admin PIN → senin için
+const normalPIN = "9553"; // Normal kullanıcı PIN
+
+if(!localStorage.getItem("userId")){
+  const p = prompt("PIN giriniz:");
+  if(p===adminPIN){
+    localStorage.setItem("userId","user_admin"); // Admin userId
+  } else if(p===normalPIN){
+    localStorage.setItem("userId","user_" + Math.random().toString(36).substr(2,9));
   } else {
     alert("Yetkisiz giriş!");
-    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Erişim Engellendi 🔒</h2>";
+    document.body.innerHTML="<h2 style='text-align:center; margin-top:50px;'>Erişim Engellendi 🔒</h2>";
   }
 }
+
+let userId = localStorage.getItem("userId");
 </script>
 
 <div class="outer-bg">
@@ -144,21 +147,14 @@ const highBox = document.getElementById("highStockStores");
 const badgeArea = document.getElementById("storeBadges");
 const topAlert = document.getElementById("topAlert");
 
-// Kullanıcı ID
-let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
-localStorage.setItem("userId", userId);
-
-// Admin userId’leri
-const adminUsers = ["user_g118g0rkt", "user_xyz456"]; // ← kendi admin userId’lerini ekle
+// Admin userId listesi
+const adminUsers = ["user_admin"]; // PIN ile admin atanıyor
 
 // Kaydet fonksiyonu
 window.saveStock = async function() {
-  // Yetki kontrolü
-  if(!adminUsers.includes(userId)) {
-    alert("Bu işlem için yetkin yok!");
-    return;
-  }
-
+  // Yetki kontrolü: admin veya normal PIN kullanıcı sadece kendi stokunu ekler
+  if(!userId) return alert("Yetkin yok!");
+  
   const storeVal = storeInput.value.trim();
   const codeVal = codeInput.value.trim();
   const nameVal = nameInput.value.trim();
@@ -211,24 +207,19 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
       const maxQty = 20;
       let ratio = (s.qty - minQty) / (maxQty - minQty);
       if(ratio > 1) ratio = 1;
-
       const minColor = 198;
       const maxColor = 114;
       const gB = Math.round(minColor - (minColor - maxColor) * ratio);
-
       d.style.backgroundColor = `rgb(198, ${gB}, ${gB})`;
       d.style.color = "#fff";
       d.style.borderColor = "#b71c1c";
-
       highStores.add(s.store);
     }
 
-    // Ürün ismi + kod
     let productText = "";
     if(s.name) productText += s.name;
     if(s.name && s.code) productText += " | ";
     if(s.code) productText += s.code;
-
     d.innerHTML = `<b>${s.store}</b><br>${productText}<br>Stok: <b>${s.qty}</b>`;
 
     // Sil/Güncelle butonları: admin veya kendi userId
@@ -245,15 +236,12 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
     stockList.appendChild(d);
   });
 
-  // ÜSTTE FADE UYARI
-  topAlert.style.display = highStores.size > 0 ? "block" : "none";
-
-  // ORTA FAZLA STOK
-  if(highStores.size > 0){
-    highBox.style.display = "block";
+  topAlert.style.display = highStores.size>0 ? "block":"none";
+  if(highStores.size>0){
+    highBox.style.display="block";
     badgeArea.innerHTML = Array.from(highStores).map(m=>`<span>${m}</span>`).join("");
   } else {
-    highBox.style.display = "none";
+    highBox.style.display="none";
   }
 });
 
