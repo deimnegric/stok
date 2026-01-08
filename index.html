@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -55,10 +55,17 @@ body { margin:0; font-family:Arial,sans-serif; }
 .form-row { display:flex; flex-wrap:wrap; gap:10px; }
 .form-row input { flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; }
 button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
-.stock-item { background:#fff; border:1px solid #ffcdd2; border-radius:10px; padding:12px; margin-bottom:10px; }
+.stock-item { background:#fff; border:1px solid #ffcdd2; border-radius:10px; padding:12px; margin-bottom:10px; transition: background 0.3s; }
 .stock-actions { margin-top:8px; }
 .stock-actions button { font-size:12px; padding:6px 10px; margin-right:5px; }
 .delete { background:#555; }
+
+/* 5'ten fazla stok kartı koyu kırmızı */
+.high-stock {
+  background:#c62828;
+  color:#fff;
+  border-color:#b71c1c;
+}
 </style>
 </head>
 <body>
@@ -181,7 +188,11 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
     const s = { id: docSnap.id, ...docSnap.data() };
     const d = document.createElement("div");
     d.className = "stock-item";
-    if(s.qty > 5) highStores.add(s.store);
+
+    if(s.qty > 5) {
+      d.classList.add("high-stock"); // 5'ten fazla stoksa koyu kırmızı
+      highStores.add(s.store);
+    }
 
     // Ürün ismi ve kodu birlikte göster
     let productText = "";
@@ -227,4 +238,4 @@ window.deleteStock = async function(id){
 };
 </script>
 </body>
-  </html>
+</html>
