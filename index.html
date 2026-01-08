@@ -5,22 +5,6 @@
 <title>BİM Stok Takip</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  <script>
-// Buraya kendi PIN'ini yazabilirsin
-const PIN = "1234"; // ← değiştirebilirsin
-
-// LocalStorage ile hatırlatma
-if (!localStorage.getItem("pin_ok")) {
-  const p = prompt("Yetkili PIN giriniz:");
-  if (p === PIN) {
-    localStorage.setItem("pin_ok","1");
-  } else {
-    alert("Yetkisiz giriş!");
-    // Siteyi görünmez yap
-    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Erişim Engellendi 🔒</h2>";
-  }
-}
-</script>
 body { margin:0; font-family:Arial,sans-serif; }
 .outer-bg { background:linear-gradient(180deg,#fff0f0 0%,#fff7f7 50%,#fff 100%); min-height:100vh; padding:0 15px 30px; }
 .container { max-width:900px; margin:auto; }
@@ -78,6 +62,21 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 </style>
 </head>
 <body>
+
+<!-- ==== PIN KORUMASI ==== -->
+<script>
+const PIN = "1234"; // → burayı değiştir
+if (!localStorage.getItem("pin_ok")) {
+  const p = prompt("Yetkili PIN giriniz:");
+  if (p === PIN) {
+    localStorage.setItem("pin_ok","1");
+  } else {
+    alert("Yetkisiz giriş!");
+    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Erişim Engellendi 🔒</h2>";
+  }
+}
+</script>
+
 <div class="outer-bg">
 <div class="container">
 
@@ -132,7 +131,6 @@ const firebaseConfig = {
   appId: "1:736994269858:web:6abc34a18470f547d5d5fb",
   measurementId: "G-3G8CF3BQ46"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -150,8 +148,17 @@ const topAlert = document.getElementById("topAlert");
 let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
 localStorage.setItem("userId", userId);
 
+// Admin userId’leri
+const adminUsers = ["user_abcdef123", "user_xyz456"]; // ← kendi admin userId’lerini ekle
+
 // Kaydet fonksiyonu
 window.saveStock = async function() {
+  // Yetki kontrolü
+  if(!adminUsers.includes(userId)) {
+    alert("Bu işlem için yetkin yok!");
+    return;
+  }
+
   const storeVal = storeInput.value.trim();
   const codeVal = codeInput.value.trim();
   const nameVal = nameInput.value.trim();
@@ -205,7 +212,6 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
       let ratio = (s.qty - minQty) / (maxQty - minQty);
       if(ratio > 1) ratio = 1;
 
-      // rgb(198, gB, gB) → stok arttıkça koyulaşıyor
       const minColor = 198;
       const maxColor = 114;
       const gB = Math.round(minColor - (minColor - maxColor) * ratio);
@@ -217,7 +223,7 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
       highStores.add(s.store);
     }
 
-    // Ürün ismi ve kodu birlikte göster
+    // Ürün ismi + kod
     let productText = "";
     if(s.name) productText += s.name;
     if(s.name && s.code) productText += " | ";
@@ -225,7 +231,8 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
 
     d.innerHTML = `<b>${s.store}</b><br>${productText}<br>Stok: <b>${s.qty}</b>`;
 
-    if(s.userId === userId){
+    // Sil/Güncelle butonları: admin veya kendi userId
+    if(s.userId === userId || adminUsers.includes(userId)){
       const actions = document.createElement("div");
       actions.className = "stock-actions";
       actions.innerHTML = `
@@ -234,13 +241,14 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
       `;
       d.appendChild(actions);
     }
+
     stockList.appendChild(d);
   });
 
-  // ÜSTTE GENEL UYARI (fade)
+  // ÜSTTE FADE UYARI
   topAlert.style.display = highStores.size > 0 ? "block" : "none";
 
-  // ORTADA FAZLA STOK DETAY
+  // ORTA FAZLA STOK
   if(highStores.size > 0){
     highBox.style.display = "block";
     badgeArea.innerHTML = Array.from(highStores).map(m=>`<span>${m}</span>`).join("");
