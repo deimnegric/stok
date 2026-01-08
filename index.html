@@ -5,6 +5,22 @@
 <title>BİM Stok Takip</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+  <script>
+// Buraya kendi PIN'ini yazabilirsin
+const PIN = "1234"; // ← değiştirebilirsin
+
+// LocalStorage ile hatırlatma
+if (!localStorage.getItem("pin_ok")) {
+  const p = prompt("Yetkili PIN giriniz:");
+  if (p === PIN) {
+    localStorage.setItem("pin_ok","1");
+  } else {
+    alert("Yetkisiz giriş!");
+    // Siteyi görünmez yap
+    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Erişim Engellendi 🔒</h2>";
+  }
+}
+</script>
 body { margin:0; font-family:Arial,sans-serif; }
 .outer-bg { background:linear-gradient(180deg,#fff0f0 0%,#fff7f7 50%,#fff 100%); min-height:100vh; padding:0 15px 30px; }
 .container { max-width:900px; margin:auto; }
