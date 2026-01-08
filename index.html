@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -59,13 +59,6 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 .stock-actions { margin-top:8px; }
 .stock-actions button { font-size:12px; padding:6px 10px; margin-right:5px; }
 .delete { background:#555; }
-
-/* 5'ten fazla stok kartı koyu kırmızı */
-.high-stock {
-  background:#c62828;
-  color:#fff;
-  border-color:#b71c1c;
-}
 </style>
 </head>
 <body>
@@ -189,8 +182,22 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
     const d = document.createElement("div");
     d.className = "stock-item";
 
-    if(s.qty > 5) {
-      d.classList.add("high-stock"); // 5'ten fazla stoksa koyu kırmızı
+    // Dinamik renk: 5'ten fazla → giderek koyulaşan kırmızı
+    if(s.qty > 5){
+      const minQty = 5;
+      const maxQty = 20;
+      let ratio = (s.qty - minQty) / (maxQty - minQty);
+      if(ratio > 1) ratio = 1;
+
+      // rgb(198, gB, gB) → stok arttıkça koyulaşıyor
+      const minColor = 198;
+      const maxColor = 114;
+      const gB = Math.round(minColor - (minColor - maxColor) * ratio);
+
+      d.style.backgroundColor = `rgb(198, ${gB}, ${gB})`;
+      d.style.color = "#fff";
+      d.style.borderColor = "#b71c1c";
+
       highStores.add(s.store);
     }
 
