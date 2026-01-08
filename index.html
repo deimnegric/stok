@@ -134,7 +134,7 @@ const topAlert = document.getElementById("topAlert");
 let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
 localStorage.setItem("userId", userId);
 
-// Kaydet fonksiyonu global
+// Kaydet fonksiyonu
 window.saveStock = async function() {
   const storeVal = storeInput.value.trim();
   const codeVal = codeInput.value.trim();
@@ -163,9 +163,8 @@ window.saveStock = async function() {
       });
     }
 
-    [storeInput,codeInput,nameInput,qtyInput].forEach(i=>i.value="");
+    [storeInput, codeInput, nameInput, qtyInput].forEach(i=>i.value="");
     storeInput.focus();
-    alert("Stok kaydedildi ✅");
   } catch(err) {
     console.error(err);
     alert("Kaydetme sırasında hata oluştu!");
@@ -184,7 +183,13 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
     d.className = "stock-item";
     if(s.qty > 5) highStores.add(s.store);
 
-    d.innerHTML = `<b>${s.store}</b><br>${s.name || s.code}<br>Stok: <b>${s.qty}</b>`;
+    // Ürün ismi ve kodu birlikte göster
+    let productText = "";
+    if(s.name) productText += s.name;
+    if(s.name && s.code) productText += " | ";
+    if(s.code) productText += s.code;
+
+    d.innerHTML = `<b>${s.store}</b><br>${productText}<br>Stok: <b>${s.qty}</b>`;
 
     if(s.userId === userId){
       const actions = document.createElement("div");
@@ -199,11 +204,7 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
   });
 
   // ÜSTTE GENEL UYARI (fade)
-  if(highStores.size > 0){
-    topAlert.style.display = "block";
-  } else {
-    topAlert.style.display = "none";
-  }
+  topAlert.style.display = highStores.size > 0 ? "block" : "none";
 
   // ORTADA FAZLA STOK DETAY
   if(highStores.size > 0){
@@ -226,4 +227,4 @@ window.deleteStock = async function(id){
 };
 </script>
 </body>
-</html>
+  </html>
