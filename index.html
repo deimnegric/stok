@@ -10,19 +10,55 @@ body { margin:0; font-family:Arial,sans-serif; }
 .container { max-width:900px; margin:auto; }
 .logo-area { text-align:center; padding:15px 0; }
 .logo-area img { max-width:140px; }
+
+/* Üst uyarı fade in/out */
+.top-alert {
+  display:none;
+  background:#ff5252;
+  color:#fff;
+  border-radius:12px;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:20px;
+  font-size:16px;
+  animation: fade 2s infinite alternate;
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fazla stok detay kutusu */
+.high-stock-box {
+  display:none;
+  background:#ffcdd2;
+  border:2px solid #f44336;
+  border-radius:12px;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+.high-stock-box span {
+  display:inline-block;
+  background:#f44336;
+  color:#fff;
+  padding:5px 10px;
+  border-radius:20px;
+  font-size:13px;
+  margin:3px;
+}
+
 .card { background:#ffebee; border:2px solid #ef9a9a; border-radius:12px; padding:15px; margin-bottom:20px; }
 .card h2 { text-align:center; color:#c62828; }
 .form-row { display:flex; flex-wrap:wrap; gap:10px; }
 .form-row input { flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; }
 button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
 .stock-item { background:#fff; border:1px solid #ffcdd2; border-radius:10px; padding:12px; margin-bottom:10px; }
-.high-stock { background:#ffcdd2; border-color:#e57373; }
 .stock-actions { margin-top:8px; }
 .stock-actions button { font-size:12px; padding:6px 10px; margin-right:5px; }
 .delete { background:#555; }
-.high-stock-box { background:#ffcdd2; border:2px dashed #c62828; border-radius:12px; padding:12px; margin-bottom:20px; }
-.high-stock-box h3 { margin:0 0 8px; color:#b71c1c; text-align:center; }
-.high-stock-box span { display:inline-block; background:#c62828; color:#fff; padding:5px 10px; border-radius:20px; font-size:13px; margin:3px; }
 </style>
 </head>
 <body>
@@ -33,12 +69,12 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
   <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Bim_%28company%29_logo.svg">
 </div>
 
-<!-- FAZLA STOK -->
-<div id="highStockStores" class="high-stock-box" style="display:none;">
-  <h3>📦 Fazla Stok Olan Mağazalar</h3>
-  <div id="storeBadges"></div>
+<!-- ÜSTTE FADE IN/OUT UYARI -->
+<div id="topAlert" class="top-alert">
+📦 Fazla Stok Var!
 </div>
 
+<!-- STOK GİRİŞİ -->
 <div class="card">
 <h2>Stok Girişi</h2>
 <div class="form-row">
@@ -53,6 +89,12 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 </div>
 </div>
 
+<!-- FAZLA STOK MAĞAZALARI -->
+<div id="highStockStores" class="high-stock-box">
+📦 Fazla Stok Olan Mağazalar: <span id="storeBadges"></span>
+</div>
+
+<!-- STOKLAR -->
 <div class="card">
 <h2>Stoklar</h2>
 <div id="stockList"></div>
@@ -65,7 +107,6 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCUArkootBSkTyoV09QDklH7nWlZbOJn30",
   authDomain: "bim-stok.firebaseapp.com",
@@ -79,7 +120,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// HTML elements
+// HTML elemanları
 const storeInput = document.getElementById("store");
 const codeInput = document.getElementById("code");
 const nameInput = document.getElementById("name");
@@ -87,12 +128,13 @@ const qtyInput = document.getElementById("qty");
 const stockList = document.getElementById("stockList");
 const highBox = document.getElementById("highStockStores");
 const badgeArea = document.getElementById("storeBadges");
+const topAlert = document.getElementById("topAlert");
 
 // Kullanıcı ID
 let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
 localStorage.setItem("userId", userId);
 
-// Kaydet fonksiyonu artık global
+// Kaydet fonksiyonu global
 window.saveStock = async function() {
   const storeVal = storeInput.value.trim();
   const codeVal = codeInput.value.trim();
@@ -130,21 +172,17 @@ window.saveStock = async function() {
   }
 };
 
-// Render stoklar
+// Stokları render et
 onSnapshot(collection(db,"stocks"), snapshot=>{
-  stockList.innerHTML="";
-  badgeArea.innerHTML="";
+  stockList.innerHTML = "";
+  badgeArea.innerHTML = "";
   const highStores = new Set();
 
   snapshot.forEach(docSnap=>{
     const s = { id: docSnap.id, ...docSnap.data() };
-
     const d = document.createElement("div");
     d.className = "stock-item";
-    if(s.qty > 5){
-      d.classList.add("high-stock");
-      highStores.add(s.store);
-    }
+    if(s.qty > 5) highStores.add(s.store);
 
     d.innerHTML = `<b>${s.store}</b><br>${s.name || s.code}<br>Stok: <b>${s.qty}</b>`;
 
@@ -157,18 +195,23 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
       `;
       d.appendChild(actions);
     }
-
     stockList.appendChild(d);
   });
 
+  // ÜSTTE GENEL UYARI (fade)
+  if(highStores.size > 0){
+    topAlert.style.display = "block";
+  } else {
+    topAlert.style.display = "none";
+  }
+
+  // ORTADA FAZLA STOK DETAY
   if(highStores.size > 0){
     highBox.style.display = "block";
-    highStores.forEach(m=>{
-      const span = document.createElement("span");
-      span.textContent = m;
-      badgeArea.appendChild(span);
-    });
-  } else highBox.style.display = "none";
+    badgeArea.innerHTML = Array.from(highStores).map(m=>`<span>${m}</span>`).join("");
+  } else {
+    highBox.style.display = "none";
+  }
 });
 
 // Edit & delete
