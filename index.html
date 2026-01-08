@@ -4,178 +4,56 @@
 <meta charset="UTF-8">
 <title>BİM Stok Takip</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.outer-bg {
-  background: linear-gradient(180deg,#fff0f0 0%,#fff7f7 50%,#ffffff 100%);
-  min-height: 100vh;
-  padding: 0 15px 30px;
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-}
-
-/* LOGO */
-.logo-area {
-  text-align: center;
-  padding: 15px 0;
-}
-.logo-area img {
-  max-width: 140px;
-}
-
-/* UYARI BAR */
-.alert-bar {
-  background: linear-gradient(90deg, #c62828, #ff7043);
-  color: #fff;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  font-weight: bold;
-  margin-bottom: 15px;
-  animation: pulse 1.2s infinite;
-  display: none;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(198,40,40,0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(198,40,40,0); }
-  100% { box-shadow: 0 0 0 0 rgba(198,40,40,0); }
-}
-
-/* FAZLA STOK */
-.high-stock-box {
-  background: #ffcdd2;
-  border: 2px dashed #c62828;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 20px;
-  display: none;
-}
-.high-stock-box h3 {
-  margin: 0 0 8px;
-  text-align: center;
-  color: #b71c1c;
-}
-.high-stock-box span {
-  background: #c62828;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  margin: 3px;
-  display: inline-block;
-}
-
-/* KART */
-.card {
-  background: #ffebee;
-  border: 2px solid #ef9a9a;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-.card h2 {
-  text-align: center;
-  color: #c62828;
-}
-
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.form-row input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  background: #c62828;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* STOK */
-.stock-item {
-  background: #fff;
-  border: 1px solid #ffcdd2;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.high-stock {
-  background: #ffcdd2;
-  border-color: #e57373;
-}
-
-.stock-actions {
-  margin-top: 8px;
-}
-
-.stock-actions button {
-  font-size: 12px;
-  padding: 6px 10px;
-  margin-right: 5px;
-}
-
-.delete {
-  background: #555;
-}
+/* --- STYLE SAME AS BEFORE --- */
+body { margin:0; font-family:Arial,sans-serif; }
+.outer-bg { background:linear-gradient(180deg,#fff0f0 0%,#fff7f7 50%,#fff 100%); min-height:100vh; padding:0 15px 30px; }
+.container { max-width:900px; margin:auto; }
+.logo-area { text-align:center; padding:15px 0; }
+.logo-area img { max-width:140px; }
+.card { background:#ffebee; border:2px solid #ef9a9a; border-radius:12px; padding:15px; margin-bottom:20px; }
+.card h2 { text-align:center; color:#c62828; }
+.form-row { display:flex; flex-wrap:wrap; gap:10px; }
+.form-row input { flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; font-size:14px; }
+button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; }
+.stock-item { background:#fff; border:1px solid #ffcdd2; border-radius:10px; padding:12px; margin-bottom:10px; }
+.high-stock { background:#ffcdd2; border-color:#e57373; }
+.stock-actions { margin-top:8px; }
+.stock-actions button { font-size:12px; padding:6px 10px; margin-right:5px; }
+.delete { background:#555; }
+.high-stock-box { background:#ffcdd2; border:2px dashed #c62828; border-radius:12px; padding:12px; margin-bottom:20px; }
+.high-stock-box h3 { margin:0 0 8px; color:#b71c1c; text-align:center; }
+.high-stock-box span { display:inline-block; background:#c62828; color:#fff; padding:5px 10px; border-radius:20px; font-size:13px; margin:3px; }
 </style>
 </head>
-
 <body>
 <div class="outer-bg">
 <div class="container">
 
-<!-- LOGO -->
 <div class="logo-area">
   <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/Bim_%28company%29_logo.svg">
 </div>
 
-<!-- UYARI -->
-<div id="alertBar" class="alert-bar">
-  ⚠️ Fazla stok tespit edildi! Kontrol ediniz
-</div>
-
-<!-- STOK GİRİŞ -->
-<div class="card">
-<h2>Stok Girişi</h2>
-<div class="form-row">
-  <input id="store" placeholder="Mağaza İsmi">
-  <input id="code" placeholder="Ürün Kodu">
-  <input id="name" placeholder="Ürün İsmi">
-  <input id="qty" type="number" inputmode="numeric" placeholder="Stok Miktarı">
-</div>
-<br>
-<div style="text-align:center">
-  <button onclick="saveStock()">Kaydet</button>
-</div>
-</div>
-
-<!-- 🔴 FAZLA STOK (ARTIK TAM ORTADA) -->
-<div id="highStockStores" class="high-stock-box">
+<!-- FAZLA STOK -->
+<div id="highStockStores" class="high-stock-box" style="display:none;">
   <h3>📦 Fazla Stok Olan Mağazalar</h3>
   <div id="storeBadges"></div>
 </div>
 
-<!-- STOKLAR -->
+<div class="card">
+<h2>Stok Girişi</h2>
+<div class="form-row">
+<input id="store" placeholder="Mağaza İsmi">
+<input id="code" placeholder="Ürün Kodu">
+<input id="name" placeholder="Ürün İsmi">
+<input id="qty" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Stok Miktarı">
+</div>
+<br>
+<div style="text-align:center">
+<button onclick="saveStock()">Kaydet</button>
+</div>
+</div>
+
 <div class="card">
 <h2>Stoklar</h2>
 <div id="stockList"></div>
@@ -184,118 +62,120 @@ button {
 </div>
 </div>
 
-<script>
+<!-- FIREBASE MODULAR -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCUArkootBSkTyoV09QDklH7nWlZbOJn30",
+  authDomain: "bim-stok.firebaseapp.com",
+  projectId: "bim-stok",
+  storageBucket: "bim-stok.appspot.com",
+  messagingSenderId: "736994269858",
+  appId: "1:736994269858:web:6abc34a18470f547d5d5fb",
+  measurementId: "G-3G8CF3BQ46"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// HTML elements
+const storeInput = document.getElementById("store");
+const codeInput = document.getElementById("code");
+const nameInput = document.getElementById("name");
+const qtyInput = document.getElementById("qty");
+const stockList = document.getElementById("stockList");
+const highBox = document.getElementById("highStockStores");
+const badgeArea = document.getElementById("storeBadges");
+
+// Kullanıcı ID
 let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
 localStorage.setItem("userId", userId);
 
-let stocks = JSON.parse(localStorage.getItem("stocks")) || [];
+// Kaydet
+async function saveStock() {
+  const storeVal = storeInput.value.trim();
+  const codeVal = codeInput.value.trim();
+  const nameVal = nameInput.value.trim();
+  const qtyVal = Number(qtyInput.value);
 
-const store = document.getElementById("store");
-const code  = document.getElementById("code");
-const nameI = document.getElementById("name");
-const qty   = document.getElementById("qty");
+  if(!storeVal || (!codeVal && !nameVal) || !qtyVal) return alert("Alanlar eksik");
 
-const stockList = document.getElementById("stockList");
-const alertBar  = document.getElementById("alertBar");
-const highBox   = document.getElementById("highStockStores");
-const badges    = document.getElementById("storeBadges");
+  // Check duplicate
+  const q = query(collection(db,"stocks"), where("store","==",storeVal));
+  const snapshot = await getDocs(q);
+  let found = false;
 
-function saveStock() {
-  const storeVal = store.value.trim();
-  const codeVal  = code.value.trim();
-  const nameVal  = nameI.value.trim();
-  const qtyVal   = Number(qty.value);
-
-  if (!storeVal || (!codeVal && !nameVal) || !qtyVal) {
-    alert("Alanlar eksik");
-    return;
-  }
-
-  const existing = stocks.find(s =>
-    s.store.toLowerCase() === storeVal.toLowerCase() &&
-    (s.code.toLowerCase() === codeVal.toLowerCase() ||
-     s.name.toLowerCase() === nameVal.toLowerCase())
-  );
-
-  if (existing) {
-    existing.qty += qtyVal;
-  } else {
-    stocks.push({ id: Date.now(), userId, store: storeVal, code: codeVal, name: nameVal, qty: qtyVal });
-  }
-
-  localStorage.setItem("stocks", JSON.stringify(stocks));
-  store.value = code.value = nameI.value = qty.value = "";
-  store.focus();
-  renderStocks();
-}
-
-function renderStocks() {
-  stockList.innerHTML = "";
-  badges.innerHTML = "";
-
-  let hasHigh = false;
-  const highStores = new Set();
-
-  stocks.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "stock-item";
-
-    if (s.qty > 5) {
-      div.classList.add("high-stock");
-      hasHigh = true;
-      highStores.add(s.store);
+  snapshot.forEach(docSnap=>{
+    const s = docSnap.data();
+    if((s.code && s.code.toLowerCase()===codeVal.toLowerCase()) || (s.name && s.name.toLowerCase()===nameVal.toLowerCase())){
+      updateDoc(doc(db,"stocks",docSnap.id), { qty: s.qty + qtyVal });
+      found = true;
     }
-
-    div.innerHTML = `
-      <b>${s.store}</b><br>
-      ${s.name || s.code}<br>
-      Stok: <b>${s.qty}</b>
-    `;
-
-    if (s.userId === userId) {
-      div.innerHTML += `
-        <div class="stock-actions">
-          <button onclick="editStock(${s.id})">Güncelle</button>
-          <button class="delete" onclick="deleteStock(${s.id})">Sil</button>
-        </div>`;
-    }
-
-    stockList.appendChild(div);
   });
 
-  alertBar.style.display = hasHigh ? "block" : "none";
-
-  if (highStores.size > 0) {
-    highBox.style.display = "block";
-    highStores.forEach(m => {
-      const sp = document.createElement("span");
-      sp.textContent = m;
-      badges.appendChild(sp);
+  if(!found){
+    addDoc(collection(db,"stocks"),{
+      store: storeVal, code: codeVal, name: nameVal, qty: qtyVal, userId, created: serverTimestamp()
     });
-  } else {
-    highBox.style.display = "none";
   }
+
+  [storeInput,codeInput,nameInput,qtyInput].forEach(i=>i.value="");
+  storeInput.focus();
 }
 
-function editStock(id) {
-  const s = stocks.find(x => x.id === id);
-  const n = prompt("Yeni stok:", s.qty);
-  if (n !== null) {
-    s.qty = Number(n);
-    localStorage.setItem("stocks", JSON.stringify(stocks));
-    renderStocks();
-  }
-}
+// Render stoklar
+onSnapshot(collection(db,"stocks"), snapshot=>{
+  const stocks = [];
+  stockList.innerHTML="";
+  badgeArea.innerHTML="";
+  const highStores = new Set();
 
-function deleteStock(id) {
-  if (!confirm("Silinsin mi?")) return;
-  stocks = stocks.filter(s => s.id !== id);
-  localStorage.setItem("stocks", JSON.stringify(stocks));
-  renderStocks();
-}
+  snapshot.forEach(docSnap=>{
+    const s = { id: docSnap.id, ...docSnap.data() };
+    stocks.push(s);
 
-renderStocks();
+    const d = document.createElement("div");
+    d.className="stock-item";
+    if(s.qty>5) { d.classList.add("high-stock"); highStores.add(s.store); }
+
+    d.innerHTML=`<b>${s.store}</b><br>${s.name||s.code}<br>Stok: <b>${s.qty}</b>`;
+
+    if(s.userId===userId){
+      const actions = document.createElement("div");
+      actions.className="stock-actions";
+      actions.innerHTML=`
+        <button onclick="editStock('${s.id}')">Güncelle</button>
+        <button class="delete" onclick="deleteStock('${s.id}')">Sil</button>
+      `;
+      d.appendChild(actions);
+    }
+
+    stockList.appendChild(d);
+  });
+
+  // Fazla stok
+  if(highStores.size>0){
+    highBox.style.display="block";
+    highStores.forEach(m=>{
+      const span = document.createElement("span");
+      span.textContent=m;
+      badgeArea.appendChild(span);
+    });
+  } else highBox.style.display="none";
+});
+
+// Edit & delete
+window.editStock=async function(id){
+  const n = prompt("Yeni stok:");
+  if(n!==null) await updateDoc(doc(db,"stocks",id),{ qty:Number(n) });
+};
+window.deleteStock=async function(id){
+  if(!confirm("Silinsin mi?")) return;
+  await deleteDoc(doc(db,"stocks",id));
+};
 </script>
-
 </body>
 </html>
