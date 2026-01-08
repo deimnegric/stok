@@ -5,7 +5,6 @@
 <title>BİM Stok Takip</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* --- STYLE SAME AS BEFORE --- */
 body { margin:0; font-family:Arial,sans-serif; }
 .outer-bg { background:linear-gradient(180deg,#fff0f0 0%,#fff7f7 50%,#fff 100%); min-height:100vh; padding:0 15px 30px; }
 .container { max-width:900px; margin:auto; }
@@ -62,7 +61,6 @@ button { background:#c62828; color:#fff; border:none; padding:10px 16px; border-
 </div>
 </div>
 
-<!-- FIREBASE MODULAR -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -94,8 +92,8 @@ const badgeArea = document.getElementById("storeBadges");
 let userId = localStorage.getItem("userId") || ("user_" + Math.random().toString(36).substr(2,9));
 localStorage.setItem("userId", userId);
 
-// Kaydet
-async function saveStock() {
+// Kaydet fonksiyonu artık global
+window.saveStock = async function() {
   const storeVal = storeInput.value.trim();
   const codeVal = codeInput.value.trim();
   const nameVal = nameInput.value.trim();
@@ -103,50 +101,57 @@ async function saveStock() {
 
   if(!storeVal || (!codeVal && !nameVal) || !qtyVal) return alert("Alanlar eksik");
 
-  // Check duplicate
-  const q = query(collection(db,"stocks"), where("store","==",storeVal));
-  const snapshot = await getDocs(q);
-  let found = false;
+  try {
+    const q = query(collection(db,"stocks"), where("store","==",storeVal));
+    const snapshot = await getDocs(q);
+    let found = false;
 
-  snapshot.forEach(docSnap=>{
-    const s = docSnap.data();
-    if((s.code && s.code.toLowerCase()===codeVal.toLowerCase()) || (s.name && s.name.toLowerCase()===nameVal.toLowerCase())){
-      updateDoc(doc(db,"stocks",docSnap.id), { qty: s.qty + qtyVal });
-      found = true;
+    for (const docSnap of snapshot.docs) {
+      const s = docSnap.data();
+      if((s.code && s.code.toLowerCase()===codeVal.toLowerCase()) || (s.name && s.name.toLowerCase()===nameVal.toLowerCase())){
+        await updateDoc(doc(db,"stocks",docSnap.id), { qty: s.qty + qtyVal });
+        found = true;
+        break;
+      }
     }
-  });
 
-  if(!found){
-    addDoc(collection(db,"stocks"),{
-      store: storeVal, code: codeVal, name: nameVal, qty: qtyVal, userId, created: serverTimestamp()
-    });
+    if(!found){
+      await addDoc(collection(db,"stocks"),{
+        store: storeVal, code: codeVal, name: nameVal, qty: qtyVal, userId, created: serverTimestamp()
+      });
+    }
+
+    [storeInput,codeInput,nameInput,qtyInput].forEach(i=>i.value="");
+    storeInput.focus();
+    alert("Stok kaydedildi ✅");
+  } catch(err) {
+    console.error(err);
+    alert("Kaydetme sırasında hata oluştu!");
   }
-
-  [storeInput,codeInput,nameInput,qtyInput].forEach(i=>i.value="");
-  storeInput.focus();
-}
+};
 
 // Render stoklar
 onSnapshot(collection(db,"stocks"), snapshot=>{
-  const stocks = [];
   stockList.innerHTML="";
   badgeArea.innerHTML="";
   const highStores = new Set();
 
   snapshot.forEach(docSnap=>{
     const s = { id: docSnap.id, ...docSnap.data() };
-    stocks.push(s);
 
     const d = document.createElement("div");
-    d.className="stock-item";
-    if(s.qty>5) { d.classList.add("high-stock"); highStores.add(s.store); }
+    d.className = "stock-item";
+    if(s.qty > 5){
+      d.classList.add("high-stock");
+      highStores.add(s.store);
+    }
 
-    d.innerHTML=`<b>${s.store}</b><br>${s.name||s.code}<br>Stok: <b>${s.qty}</b>`;
+    d.innerHTML = `<b>${s.store}</b><br>${s.name || s.code}<br>Stok: <b>${s.qty}</b>`;
 
-    if(s.userId===userId){
+    if(s.userId === userId){
       const actions = document.createElement("div");
-      actions.className="stock-actions";
-      actions.innerHTML=`
+      actions.className = "stock-actions";
+      actions.innerHTML = `
         <button onclick="editStock('${s.id}')">Güncelle</button>
         <button class="delete" onclick="deleteStock('${s.id}')">Sil</button>
       `;
@@ -156,23 +161,23 @@ onSnapshot(collection(db,"stocks"), snapshot=>{
     stockList.appendChild(d);
   });
 
-  // Fazla stok
-  if(highStores.size>0){
-    highBox.style.display="block";
+  if(highStores.size > 0){
+    highBox.style.display = "block";
     highStores.forEach(m=>{
       const span = document.createElement("span");
-      span.textContent=m;
+      span.textContent = m;
       badgeArea.appendChild(span);
     });
-  } else highBox.style.display="none";
+  } else highBox.style.display = "none";
 });
 
 // Edit & delete
-window.editStock=async function(id){
+window.editStock = async function(id){
   const n = prompt("Yeni stok:");
   if(n!==null) await updateDoc(doc(db,"stocks",id),{ qty:Number(n) });
 };
-window.deleteStock=async function(id){
+
+window.deleteStock = async function(id){
   if(!confirm("Silinsin mi?")) return;
   await deleteDoc(doc(db,"stocks",id));
 };
